@@ -6,6 +6,8 @@ import com.lucasnarloch.freelancerhub.domain.auth.dtos.RegisterUserDto;
 import com.lucasnarloch.freelancerhub.domain.user.User;
 import com.lucasnarloch.freelancerhub.domain.user.UserRepository;
 import com.lucasnarloch.freelancerhub.domain.user.dtos.UserResponseDto;
+import com.lucasnarloch.freelancerhub.domain.user.exceptions.EmailAlreadyRegistered;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -39,9 +41,17 @@ public class AuthService {
     }
 
     public UserResponseDto register(RegisterUserDto body) {
+        if (userRepository.findByEmail(body.email()).isPresent()) {
+            throw new EmailAlreadyRegistered();
+        }
+
         String passwordHash = passwordEncoder.encode(body.password());
         User user = new User(body.name(), body.email(), passwordHash);
 
-        return UserResponseDto.from(userRepository.save(user));
+        try {
+            return UserResponseDto.from(userRepository.save(user));
+        } catch (DataIntegrityViolationException exception) {
+            throw new EmailAlreadyRegistered();
+        }
     }
 }

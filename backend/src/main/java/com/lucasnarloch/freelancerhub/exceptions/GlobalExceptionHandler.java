@@ -1,6 +1,7 @@
 package com.lucasnarloch.freelancerhub.exceptions;
 
 import com.lucasnarloch.freelancerhub.domain.user.exceptions.UserNotFound;
+import com.lucasnarloch.freelancerhub.domain.user.exceptions.EmailAlreadyRegistered;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,6 +36,12 @@ public class GlobalExceptionHandler {
             UserNotFound.class)
     public ResponseEntity<Map<String, String>> handleNotFoundException(UserNotFound ex) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(EmailAlreadyRegistered.class)
+    public ResponseEntity<Map<String, String>> handleEmailAlreadyRegistered(EmailAlreadyRegistered ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
                 .body(Map.of("error", ex.getMessage()));
     }
 }
