@@ -1,12 +1,10 @@
 package com.lucasnarloch.freelancerhub.domain.user;
 
-import com.lucasnarloch.freelancerhub.domain.user.dtos.CreateUserRequestDto;
 import com.lucasnarloch.freelancerhub.domain.user.dtos.UserResponseDto;
-import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -18,21 +16,8 @@ public class UserController {
         this.userService = userService;
     }
 
-    @PostMapping
-    @ResponseStatus(HttpStatus.CREATED)
-    public UserResponseDto save(@Valid @RequestBody CreateUserRequestDto body) {
-        return userService.registerUser(body);
+    @GetMapping("/me")
+    public UserResponseDto findCurrentUser(@AuthenticationPrincipal Jwt jwt) {
+        return userService.findById(UUID.fromString(jwt.getSubject()));
     }
-
-    @GetMapping("/{id}")
-    public UserResponseDto findById(@PathVariable UUID id) {
-        return userService.findById(id);
-    }
-
-    @GetMapping
-    public List<UserResponseDto> findAll() {
-        return userService.findAll();
-    }
-
-
 }

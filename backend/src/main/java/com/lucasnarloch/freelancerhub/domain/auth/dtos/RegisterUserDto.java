@@ -1,10 +1,10 @@
-package com.lucasnarloch.freelancerhub.domain.user.dtos;
+package com.lucasnarloch.freelancerhub.domain.auth.dtos;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 
-public record CreateUserRequestDto(
+public record RegisterUserDto(
 
         @NotBlank
         @Size(max = 255)

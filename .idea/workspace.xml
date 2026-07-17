@@ -4,34 +4,67 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="6a458b31-23c3-4481-b7b8-25d3d4e5aa1b" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/README.md" beforeDir="false" afterPath="$PROJECT_DIR$/README.md" afterDir="false" />
+    <list default="true" id="6a458b31-23c3-4481-b7b8-25d3d4e5aa1b" name="Changes" comment="feat: user registration and gets">
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/auth/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/auth/AuthService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/auth/dtos/LoginDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/auth/dtos/LoginResponseDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/backend/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/config/PasswordConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/infra/config/PasswordConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/infra/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/UserController.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/UserController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/user/dtos/CreateUserRequestDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/java/com/lucasnarloch/freelancerhub/domain/auth/dtos/RegisterUserDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/backend/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/docker-compose.yml" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
   </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Interface" />
+        <option value="Class" />
+        <option value="Record" />
+      </list>
+    </option>
+  </component>
   <component name="Git.Settings">
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
-  <component name="GitHubPullRequestSearchHistory"><![CDATA[{
-  "lastFilter": {
-    "state": "OPEN",
-    "assignee": "LucasNarZ"
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;LucasNarZ&quot;
   }
-}]]></component>
-  <component name="GithubPullRequestsUISettings"><![CDATA[{
-  "selectedUrlAndAccountId": {
-    "url": "git@github.com:LucasNarZ/FreelancerHub.git",
-    "accountId": "92a1cd4c-c402-410e-9044-2bbaeedcc20f"
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;git@github.com:LucasNarZ/FreelancerHub.git&quot;,
+    &quot;accountId&quot;: &quot;92a1cd4c-c402-410e-9044-2bbaeedcc20f&quot;
   }
-}]]></component>
+}</component>
+  <component name="MavenImportPreferences">
+    <option name="generalSettings">
+      <MavenGeneralSettings>
+        <option name="mavenHomeTypeForPersistence" value="WRAPPER" />
+      </MavenGeneralSettings>
+    </option>
+  </component>
   <component name="ProjectColorInfo">{
   &quot;associatedIndex&quot;: 8,
   &quot;fromUser&quot;: false
 }</component>
   <component name="ProjectId" id="3GMwHvEljZYjgPgyT3zcuaNyZTN" />
+  <component name="ProjectLevelVcsManager">
+    <ConfirmationsSetting value="2" id="Add" />
+  </component>
   <component name="ProjectViewState">
     <option name="hideEmptyMiddlePackages" value="true" />
     <option name="showLibraryContents" value="true" />
@@ -41,14 +74,24 @@
     "ModuleVcsDetector.initialDetectionPerformed": "true",
     "RunOnceActivity.ShowReadmeOnStart": "true",
     "RunOnceActivity.TerminalTabsStorage.copyFrom.TerminalArrangementManager.252": "true",
+    "RunOnceActivity.git.unshallow": "true",
     "RunOnceActivity.typescript.service.memoryLimit.init": "true",
     "codeWithMe.voiceChat.enabledByDefault": "false",
     "git-widget-placeholder": "main",
     "kotlin-language-version-configured": "true",
-    "last_opened_file_path": "/home/lucas/IdeaProjects/freelancerhub/backend/src/main/resources",
+    "last_opened_file_path": "/home/lucasn/Documents/repositories/FreelancerHub/backend",
     "nodejs_package_manager_path": "npm",
     "onboarding.tips.debug.path": "/home/lucas/IdeaProjects/freelancerhub/src/main/java/org/example/Main.java",
+    "project.structure.last.edited": "Modules",
+    "project.structure.proportion": "0.15",
+    "project.structure.side.proportion": "0.0",
+    "settings.editor.selected.configurable": "preferences.lookFeel",
     "vue.rearranger.settings.migration": "true"
+  },
+  "keyToStringList": {
+    "DatabaseDriversLRU": [
+      "postgresql"
+    ]
   }
 }]]></component>
   <component name="RecentsManager">
@@ -73,6 +116,14 @@
       <option name="filePath" />
       <method v="2" />
     </configuration>
+    <configuration name="FreelancerhubApplication" type="SpringBootApplicationConfigurationType" factoryName="Spring Boot" nameIsGenerated="true">
+      <option name="FRAME_DEACTIVATION_UPDATE_POLICY" value="UpdateClassesAndResources" />
+      <module name="freelancerhub" />
+      <option name="SPRING_BOOT_MAIN_CLASS" value="com.lucasnarloch.freelancerhub.FreelancerhubApplication" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
   </component>
   <component name="SharedIndexes">
     <attachedChunks>
@@ -91,11 +142,27 @@
       <updated>1783794666272</updated>
       <workItem from="1783794670334" duration="238000" />
       <workItem from="1783794923161" duration="1175000" />
+      <workItem from="1783982601924" duration="258000" />
+      <workItem from="1783982883193" duration="4386000" />
+      <workItem from="1784243206913" duration="5684000" />
     </task>
+    <task id="LOCAL-00001" summary="feat: user registration and gets">
+      <option name="closed" value="true" />
+      <created>1783986908040</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1783986908041</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="feat: user registration and gets" />
+    <option name="LAST_COMMIT_MESSAGE" value="feat: user registration and gets" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
