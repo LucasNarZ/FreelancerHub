@@ -1,6 +1,5 @@
 package com.lucasnarloch.freelancerhub.infra.config;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -19,8 +18,8 @@ public class JwtConfig {
     public static final String ISSUER = "freelancer-hub";
 
     @Bean
-    SecretKey jwtSecretKey(@Value("${security.jwt.secret}") String encodedSecret) {
-        byte[] secret = Base64.getDecoder().decode(encodedSecret);
+    SecretKey jwtSecretKey(JwtProperties jwtProperties) {
+        byte[] secret = Base64.getDecoder().decode(jwtProperties.secret());
 
         if (secret.length < 32) {
             throw new IllegalArgumentException("JWT_SECRET must contain at least 256 bits");

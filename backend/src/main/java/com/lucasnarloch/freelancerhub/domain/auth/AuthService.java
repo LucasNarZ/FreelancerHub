@@ -7,16 +7,13 @@ import com.lucasnarloch.freelancerhub.domain.user.User;
 import com.lucasnarloch.freelancerhub.domain.user.UserRepository;
 import com.lucasnarloch.freelancerhub.domain.user.dtos.UserResponseDto;
 import com.lucasnarloch.freelancerhub.domain.user.exceptions.EmailAlreadyRegistered;
-import org.springframework.beans.factory.annotation.Value;
+import com.lucasnarloch.freelancerhub.infra.config.JwtProperties;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import org.springframework.web.server.ResponseStatusException;
-
-import java.time.Duration;
 
 @Service
 public class AuthService {
@@ -24,22 +21,23 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
-    private final RefreshTokenStore refreshTokenStore;
-    private final Duration refreshTokenExpiration;
+    private final RefreshTokenRepository refreshTokenRepository;
+    private final JwtProperties jwtProperties;
 
     public AuthService(
             UserRepository userRepository,
             AuthenticationManager authenticationManager,
             JwtService jwtService,
-            PasswordEncoder passwordEncoder, RefreshTokenStore refreshTokenStore,
-            @Value("${security.jwt.refresh-token-expiration}") Duration refreshTokenExpiration
+            PasswordEncoder passwordEncoder,
+            RefreshTokenRepository refreshTokenRepository,
+            JwtProperties jwtProperties
     ) {
         this.userRepository = userRepository;
         this.authenticationManager = authenticationManager;
         this.jwtService = jwtService;
         this.passwordEncoder = passwordEncoder;
-        this.refreshTokenStore = refreshTokenStore;
-        this.refreshTokenExpiration = refreshTokenExpiration;
+        this.refreshTokenRepository = refreshTokenRepository;
+        this.jwtProperties = jwtProperties;
     }
 
     public TokenPair login(LoginDto userCredentials) {
@@ -50,7 +48,7 @@ public class AuthService {
 
         var accessToken = jwtService.generateAccessToken(user.getId());
         var refreshToken = jwtService.generateRefreshToken(user.getId());
-        refreshTokenStore.save(user.getId().toString(), refreshToken, refreshTokenExpiration);
+        refreshTokenRepository.save(user.getId().toString(), refreshToken, jwtProperties.refreshTokenExpiration());
 
         return new TokenPair(accessToken, refreshToken);
     }
@@ -74,13 +72,13 @@ public class AuthService {
         var refreshJwt = jwtService.decodeRefreshToken(refreshToken);
         String userId = refreshJwt.getSubject();
 
-        if (!refreshTokenStore.isValid(userId.toString(), refreshToken)) {
+        if (!refreshTokenRepository.isValid(userId, refreshToken)) {
             throw new InvalidRefreshToken();
         }
 
-        refreshTokenStore.revoke(userId.toString(), refreshToken);
+        refreshTokenRepository.revoke(userId, refreshToken);
         String newRefreshToken = jwtService.generateRefreshToken(java.util.UUID.fromString(userId));
-        refreshTokenStore.save(userId, newRefreshToken, refreshTokenExpiration);
+        refreshTokenRepository.save(userId, newRefreshToken, jwtProperties.refreshTokenExpiration());
 
         String accessToken = jwtService.generateAccessToken(java.util.UUID.fromString(userId));
 

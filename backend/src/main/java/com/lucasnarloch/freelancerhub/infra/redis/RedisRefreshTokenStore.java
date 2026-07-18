@@ -1,5 +1,6 @@
-package com.lucasnarloch.freelancerhub.domain.auth;
+package com.lucasnarloch.freelancerhub.infra.redis;
 
+import com.lucasnarloch.freelancerhub.domain.auth.RefreshTokenRepository;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 
@@ -10,10 +11,10 @@ import java.time.Duration;
 import java.util.HexFormat;
 
 @Service
-public class RefreshTokenStore {
+public class RedisRefreshTokenStore implements RefreshTokenRepository {
     private final StringRedisTemplate redis;
 
-    public RefreshTokenStore(StringRedisTemplate redis) {
+    public RedisRefreshTokenStore(StringRedisTemplate redis) {
         this.redis = redis;
     }
 

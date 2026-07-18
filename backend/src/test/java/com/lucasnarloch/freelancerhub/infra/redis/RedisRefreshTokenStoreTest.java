@@ -1,4 +1,4 @@
-package com.lucasnarloch.freelancerhub.domain.auth;
+package com.lucasnarloch.freelancerhub.infra.redis;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -14,10 +14,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-class RefreshTokenStoreTest {
+class RedisRefreshTokenStoreTest {
 
     private final StringRedisTemplate redis = mock(StringRedisTemplate.class);
-    private final RefreshTokenStore store = new RefreshTokenStore(redis);
+    private final RedisRefreshTokenStore store = new RedisRefreshTokenStore(redis);
 
     @Test
     void storesTokenHashWithItsExpiration() {

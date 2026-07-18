@@ -6,7 +6,7 @@ import com.lucasnarloch.freelancerhub.domain.auth.dtos.RegisterUserDto;
 import com.lucasnarloch.freelancerhub.domain.user.dtos.UserResponseDto;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Value;
+import com.lucasnarloch.freelancerhub.infra.config.JwtProperties;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
@@ -17,21 +17,19 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.time.Duration;
-
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
 
     private final AuthService authService;
-    private final Duration refreshTokenExpiration;
+    private final JwtProperties jwtProperties;
 
     public AuthController(
             AuthService authService,
-            @Value("${security.jwt.refresh-token-expiration}") Duration refreshTokenExpiration
+            JwtProperties jwtProperties
     ) {
         this.authService = authService;
-        this.refreshTokenExpiration = refreshTokenExpiration;
+        this.jwtProperties = jwtProperties;
     }
 
     @PostMapping("/login")
@@ -63,7 +61,7 @@ public class AuthController {
                 .secure(true)
                 .sameSite("Strict")
                 .path("/auth/refresh")
-                .maxAge(refreshTokenExpiration)
+                .maxAge(jwtProperties.refreshTokenExpiration())
                 .build();
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }

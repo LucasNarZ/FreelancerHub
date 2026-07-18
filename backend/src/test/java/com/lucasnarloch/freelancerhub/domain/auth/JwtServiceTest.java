@@ -1,6 +1,7 @@
 package com.lucasnarloch.freelancerhub.domain.auth;
 
 import com.lucasnarloch.freelancerhub.infra.config.JwtConfig;
+import com.lucasnarloch.freelancerhub.infra.config.JwtProperties;
 import com.lucasnarloch.freelancerhub.domain.auth.exceptions.InvalidRefreshToken;
 import org.junit.jupiter.api.Test;
 import org.springframework.security.oauth2.jose.jws.MacAlgorithm;
@@ -28,7 +29,7 @@ class JwtServiceTest {
         var decoder = NimbusJwtDecoder.withSecretKey(secretKey)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
-        var service = new JwtService(encoder, Duration.ofMinutes(15), Duration.ofDays(30), decoder);
+        var service = new JwtService(encoder, new JwtProperties("secret", Duration.ofMinutes(15), Duration.ofDays(30)), decoder);
         UUID userId = UUID.randomUUID();
         Instant beforeIssuance = Instant.now();
 
@@ -52,7 +53,7 @@ class JwtServiceTest {
         var decoder = NimbusJwtDecoder.withSecretKey(secretKey)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
-        var service = new JwtService(encoder, Duration.ofMinutes(15), Duration.ofDays(30), decoder);
+        var service = new JwtService(encoder, new JwtProperties("secret", Duration.ofMinutes(15), Duration.ofDays(30)), decoder);
 
         var jwt = service.decodeRefreshToken(service.generateRefreshToken(UUID.randomUUID()));
 
@@ -69,7 +70,7 @@ class JwtServiceTest {
         var decoder = NimbusJwtDecoder.withSecretKey(secretKey)
                 .macAlgorithm(MacAlgorithm.HS256)
                 .build();
-        var service = new JwtService(encoder, Duration.ofMinutes(15), Duration.ofDays(30), decoder);
+        var service = new JwtService(encoder, new JwtProperties("secret", Duration.ofMinutes(15), Duration.ofDays(30)), decoder);
 
         assertThatThrownBy(() -> service.decodeRefreshToken(service.generateAccessToken(UUID.randomUUID())))
                 .isInstanceOf(InvalidRefreshToken.class)

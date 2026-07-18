@@ -6,6 +6,7 @@ import com.lucasnarloch.freelancerhub.domain.auth.exceptions.InvalidRefreshToken
 import com.lucasnarloch.freelancerhub.domain.user.User;
 import com.lucasnarloch.freelancerhub.domain.user.UserRepository;
 import com.lucasnarloch.freelancerhub.domain.user.exceptions.EmailAlreadyRegistered;
+import com.lucasnarloch.freelancerhub.infra.config.JwtProperties;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -45,7 +46,7 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
-    private RefreshTokenStore refreshTokenStore;
+    private RefreshTokenRepository refreshTokenStore;
 
     @Mock
     private Authentication authentication;
@@ -60,7 +61,7 @@ class AuthServiceTest {
                 jwtService,
                 passwordEncoder,
                 refreshTokenStore,
-                Duration.ofDays(30)
+                new JwtProperties("secret", Duration.ofMinutes(15), Duration.ofDays(30))
         );
     }
 
