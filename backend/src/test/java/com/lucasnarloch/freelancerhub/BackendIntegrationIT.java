@@ -1,8 +1,10 @@
 package com.lucasnarloch.freelancerhub;
 
 import com.jayway.jsonpath.JsonPath;
+import com.lucasnarloch.freelancerhub.domain.auth.RefreshTokenRepository;
 import com.lucasnarloch.freelancerhub.domain.user.User;
 import com.lucasnarloch.freelancerhub.domain.user.UserRepository;
+import jakarta.servlet.http.Cookie;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,14 +12,17 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.testcontainers.service.connection.ServiceConnection;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
 import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.jdbc.core.simple.JdbcClient;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MvcResult;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 import org.testcontainers.postgresql.PostgreSQLContainer;
+import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.utility.DockerImageName;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -44,11 +49,20 @@ class BackendIntegrationIT {
             DockerImageName.parse("postgres:16")
     );
 
+    @Container
+    @ServiceConnection
+    static final GenericContainer<?> REDIS = new GenericContainer<>(
+            DockerImageName.parse("redis:7-alpine")
+    ).withExposedPorts(6379);
+
     @Autowired
     private MockMvc mockMvc;
 
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private RefreshTokenRepository refreshTokenRepository;
 
     @Autowired
     private PasswordEncoder passwordEncoder;
@@ -133,7 +147,7 @@ class BackendIntegrationIT {
     void logsInAndUsesAccessTokenToReadCurrentUser() throws Exception {
         register("user@example.com");
 
-        String response = mockMvc.perform(post("/auth/login")
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content("""
                                 {
@@ -142,21 +156,49 @@ class BackendIntegrationIT {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").isString())
-                .andReturn()
-                .getResponse()
-                .getContentAsString();
-        String token = JsonPath.read(response, "$.token");
+                .andExpect(jsonPath("$.accessToken").isString())
+                .andReturn();
+        String response = loginResult.getResponse().getContentAsString();
+        String token = JsonPath.read(response, "$.accessToken");
         User persistedUser = userRepository.findByEmail("user@example.com").orElseThrow();
         var jwt = jwtDecoder.decode(token);
 
         assertThat(jwt.getSubject()).isEqualTo(persistedUser.getId().toString());
-        assertThat(jwt.getClaimAsString("email")).isEqualTo("user@example.com");
+        String refreshToken = refreshTokenFrom(loginResult.getResponse().getHeader(HttpHeaders.SET_COOKIE));
+
+        assertThat(refreshTokenRepository.isValid(persistedUser.getId().toString(), refreshToken)).isTrue();
 
         mockMvc.perform(get("/users/me").header("Authorization", "Bearer " + token))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.id").value(persistedUser.getId().toString()))
                 .andExpect(jsonPath("$.email").value("user@example.com"));
+    }
+
+    @Test
+    void logsOutAndRevokesRefreshToken() throws Exception {
+        register("user@example.com");
+        User persistedUser = userRepository.findByEmail("user@example.com").orElseThrow();
+
+        MvcResult loginResult = mockMvc.perform(post("/auth/login")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "email": "user@example.com",
+                                  "password": "password123"
+                                }
+                                """))
+                .andExpect(status().isOk())
+                .andReturn();
+        String refreshToken = refreshTokenFrom(loginResult.getResponse().getHeader(HttpHeaders.SET_COOKIE));
+
+        MvcResult logoutResult = mockMvc.perform(post("/auth/logout")
+                        .cookie(new Cookie("refresh_token", refreshToken)))
+                .andExpect(status().isNoContent())
+                .andReturn();
+
+        assertThat(logoutResult.getResponse().getHeader(HttpHeaders.SET_COOKIE))
+                .contains("refresh_token=", "Path=/auth", "Max-Age=0");
+        assertThat(refreshTokenRepository.isValid(persistedUser.getId().toString(), refreshToken)).isFalse();
     }
 
     @Test
@@ -198,5 +240,9 @@ class BackendIntegrationIT {
                   "password": "password123"
                 }
                 """.formatted(email);
+    }
+
+    private String refreshTokenFrom(String setCookieHeader) {
+        return setCookieHeader.substring("refresh_token=".length(), setCookieHeader.indexOf(';'));
     }
 }

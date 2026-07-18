@@ -166,4 +166,22 @@ class AuthServiceTest {
                 .isInstanceOf(InvalidRefreshToken.class)
                 .hasMessage("Invalid refresh token");
     }
+
+    @Test
+    void logoutUser() {
+        UUID userId = UUID.randomUUID();
+
+        Jwt refreshJwt = new Jwt(
+                "signed-refresh-token",
+                Instant.now(),
+                Instant.now().plusSeconds(60),
+                Map.of("alg", "HS256"),
+                Map.of("sub", userId.toString(), "token_type", "refresh")
+        );
+        when(jwtService.decodeRefreshToken("signed-refresh-token")).thenReturn(refreshJwt);
+
+        authService.logout("signed-refresh-token");
+
+        verify(refreshTokenStore).revoke(userId.toString(), "signed-refresh-token");
+    }
 }

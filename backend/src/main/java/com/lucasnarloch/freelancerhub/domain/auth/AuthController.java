@@ -17,6 +17,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.time.Duration;
+
 @RestController
 @RequestMapping("/auth")
 public class AuthController {
@@ -55,14 +57,34 @@ public class AuthController {
         return new LoginResponseDto(tokens.accessToken());
     }
 
+    @PostMapping("/logout")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void logout(@CookieValue("refresh_token") String refreshToken, HttpServletResponse response){
+        authService.logout(refreshToken);
+
+        clearRefreshCookie(response);
+    }
+
     private void setRefreshCookie(HttpServletResponse response, String refreshToken) {
         ResponseCookie cookie = ResponseCookie.from("refresh_token", refreshToken)
                 .httpOnly(true)
                 .secure(true)
                 .sameSite("Strict")
-                .path("/auth/refresh")
+                .path("/auth")
                 .maxAge(jwtProperties.refreshTokenExpiration())
                 .build();
+        response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
+    }
+
+    private void clearRefreshCookie(HttpServletResponse response) {
+        ResponseCookie cookie = ResponseCookie.from("refresh_token", "")
+                .httpOnly(true)
+                .secure(true)
+                .sameSite("Strict")
+                .path("/auth")
+                .maxAge(Duration.ZERO)
+                .build();
+
         response.addHeader(HttpHeaders.SET_COOKIE, cookie.toString());
     }
 }

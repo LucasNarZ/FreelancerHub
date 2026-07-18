@@ -24,11 +24,12 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
                         .requestMatchers(
-                                HttpMethod.POST,
-                                "/auth/login",
-                                "/auth/register",
-                                "/auth/refresh"
-                        ).permitAll()
+                                 HttpMethod.POST,
+                                 "/auth/login",
+                                 "/auth/register",
+                                 "/auth/refresh",
+                                 "/auth/logout"
+                         ).permitAll()
                         .anyRequest().authenticated()
                 )
                 .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {}))
