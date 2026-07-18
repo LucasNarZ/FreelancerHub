@@ -2,6 +2,7 @@ package com.lucasnarloch.freelancerhub.exceptions;
 
 import com.lucasnarloch.freelancerhub.domain.user.exceptions.UserNotFound;
 import com.lucasnarloch.freelancerhub.domain.user.exceptions.EmailAlreadyRegistered;
+import com.lucasnarloch.freelancerhub.domain.auth.exceptions.InvalidRefreshToken;
 import org.springframework.context.support.DefaultMessageSourceResolvable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -42,6 +43,12 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(EmailAlreadyRegistered.class)
     public ResponseEntity<Map<String, String>> handleEmailAlreadyRegistered(EmailAlreadyRegistered ex) {
         return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body(Map.of("error", ex.getMessage()));
+    }
+
+    @ExceptionHandler(InvalidRefreshToken.class)
+    public ResponseEntity<Map<String, String>> handleInvalidRefreshToken(InvalidRefreshToken ex) {
+        return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
                 .body(Map.of("error", ex.getMessage()));
     }
 }

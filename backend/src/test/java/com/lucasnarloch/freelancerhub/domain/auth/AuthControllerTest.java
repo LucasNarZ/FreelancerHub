@@ -1,7 +1,7 @@
 package com.lucasnarloch.freelancerhub.domain.auth;
 
-import com.lucasnarloch.freelancerhub.domain.auth.dtos.LoginResponseDto;
 import com.lucasnarloch.freelancerhub.domain.auth.dtos.RegisterUserDto;
+import com.lucasnarloch.freelancerhub.domain.auth.exceptions.InvalidRefreshToken;
 import com.lucasnarloch.freelancerhub.domain.user.dtos.UserResponseDto;
 import com.lucasnarloch.freelancerhub.infra.config.SecurityConfig;
 import org.junit.jupiter.api.Test;
@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.webmvc.test.autoconfigure.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
+import org.springframework.http.HttpHeaders;
 import org.springframework.security.oauth2.jwt.JwtDecoder;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
@@ -75,7 +76,7 @@ class AuthControllerTest {
 
     @Test
     void logsInValidUser() throws Exception {
-        when(authService.login(any())).thenReturn(new LoginResponseDto("signed-token"));
+        when(authService.login(any())).thenReturn(new TokenPair("signed-access-token", "signed-refresh-token"));
 
         mockMvc.perform(post("/auth/login")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -86,6 +87,36 @@ class AuthControllerTest {
                                 }
                                 """))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$.token").value("signed-token"));
+                .andExpect(jsonPath("$.accessToken").value("signed-access-token"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .string(HttpHeaders.SET_COOKIE, org.hamcrest.Matchers.allOf(
+                                org.hamcrest.Matchers.containsString("refresh_token=signed-refresh-token"),
+                                org.hamcrest.Matchers.containsString("HttpOnly"),
+                                org.hamcrest.Matchers.containsString("SameSite=Strict")
+                        )));
+    }
+
+    @Test
+    void refreshesTokensUsingRefreshCookie() throws Exception {
+        when(authService.refresh("signed-refresh-token"))
+                .thenReturn(new TokenPair("new-access-token", "new-refresh-token"));
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(new jakarta.servlet.http.Cookie("refresh_token", "signed-refresh-token")))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.accessToken").value("new-access-token"))
+                .andExpect(org.springframework.test.web.servlet.result.MockMvcResultMatchers.header()
+                        .string(HttpHeaders.SET_COOKIE,
+                                org.hamcrest.Matchers.containsString("refresh_token=new-refresh-token")));
+    }
+
+    @Test
+    void rejectsInvalidRefreshCookie() throws Exception {
+        when(authService.refresh("invalid-refresh-token")).thenThrow(new InvalidRefreshToken());
+
+        mockMvc.perform(post("/auth/refresh")
+                        .cookie(new jakarta.servlet.http.Cookie("refresh_token", "invalid-refresh-token")))
+                .andExpect(status().isUnauthorized())
+                .andExpect(jsonPath("$.error").value("Invalid refresh token"));
     }
 }

@@ -2,12 +2,13 @@ package com.lucasnarloch.freelancerhub.domain.auth;
 
 import com.lucasnarloch.freelancerhub.domain.auth.dtos.LoginDto;
 import com.lucasnarloch.freelancerhub.domain.auth.dtos.RegisterUserDto;
+import com.lucasnarloch.freelancerhub.domain.auth.exceptions.InvalidRefreshToken;
 import com.lucasnarloch.freelancerhub.domain.user.User;
 import com.lucasnarloch.freelancerhub.domain.user.UserRepository;
 import com.lucasnarloch.freelancerhub.domain.user.exceptions.EmailAlreadyRegistered;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -15,6 +16,12 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.security.oauth2.jwt.Jwt;
+
+import java.time.Duration;
+import java.time.Instant;
+import java.util.Map;
+import java.util.UUID;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
@@ -38,10 +45,24 @@ class AuthServiceTest {
     private PasswordEncoder passwordEncoder;
 
     @Mock
+    private RefreshTokenStore refreshTokenStore;
+
+    @Mock
     private Authentication authentication;
 
-    @InjectMocks
     private AuthService authService;
+
+    @BeforeEach
+    void setUp() {
+        authService = new AuthService(
+                userRepository,
+                authenticationManager,
+                jwtService,
+                passwordEncoder,
+                refreshTokenStore,
+                Duration.ofDays(30)
+        );
+    }
 
     @Test
     void registersUserWithEncodedPassword() {
@@ -85,11 +106,14 @@ class AuthServiceTest {
     @Test
     void generatesTokenForAuthenticatedPrincipal() {
         LoginDto request = new LoginDto("user@example.com", "password123");
-        User user = new User("Test User", "user@example.com", "password-hash");
+        UUID userId = UUID.randomUUID();
+        User user = org.mockito.Mockito.mock(User.class);
         when(authenticationManager.authenticate(any(UsernamePasswordAuthenticationToken.class)))
                 .thenReturn(authentication);
         when(authentication.getPrincipal()).thenReturn(user);
-        when(jwtService.generateAccessToken(user)).thenReturn("signed-token");
+        when(user.getId()).thenReturn(userId);
+        when(jwtService.generateAccessToken(userId)).thenReturn("signed-access-token");
+        when(jwtService.generateRefreshToken(userId)).thenReturn("signed-refresh-token");
 
         var response = authService.login(request);
 
@@ -97,6 +121,48 @@ class AuthServiceTest {
         verify(authenticationManager).authenticate(authenticationCaptor.capture());
         assertThat(authenticationCaptor.getValue().getPrincipal()).isEqualTo("user@example.com");
         assertThat(authenticationCaptor.getValue().getCredentials()).isEqualTo("password123");
-        assertThat(response.token()).isEqualTo("signed-token");
+        assertThat(response.accessToken()).isEqualTo("signed-access-token");
+        assertThat(response.refreshToken()).isEqualTo("signed-refresh-token");
+        verify(refreshTokenStore).save(userId.toString(), "signed-refresh-token", Duration.ofDays(30));
+    }
+
+    @Test
+    void rotatesValidRefreshToken() {
+        UUID userId = UUID.randomUUID();
+        Jwt refreshJwt = new Jwt(
+                "signed-refresh-token",
+                Instant.now(),
+                Instant.now().plusSeconds(60),
+                Map.of("alg", "HS256"),
+                Map.of("sub", userId.toString(), "token_type", "refresh")
+        );
+        when(jwtService.decodeRefreshToken("signed-refresh-token")).thenReturn(refreshJwt);
+        when(refreshTokenStore.isValid(userId.toString(), "signed-refresh-token")).thenReturn(true);
+        when(jwtService.generateAccessToken(userId)).thenReturn("new-access-token");
+        when(jwtService.generateRefreshToken(userId)).thenReturn("new-refresh-token");
+
+        var response = authService.refresh("signed-refresh-token");
+
+        assertThat(response.accessToken()).isEqualTo("new-access-token");
+        assertThat(response.refreshToken()).isEqualTo("new-refresh-token");
+        verify(refreshTokenStore).revoke(userId.toString(), "signed-refresh-token");
+        verify(refreshTokenStore).save(userId.toString(), "new-refresh-token", Duration.ofDays(30));
+    }
+
+    @Test
+    void rejectsRefreshTokenMissingFromRedis() {
+        UUID userId = UUID.randomUUID();
+        Jwt refreshJwt = new Jwt(
+                "signed-refresh-token",
+                Instant.now(),
+                Instant.now().plusSeconds(60),
+                Map.of("alg", "HS256"),
+                Map.of("sub", userId.toString(), "token_type", "refresh")
+        );
+        when(jwtService.decodeRefreshToken("signed-refresh-token")).thenReturn(refreshJwt);
+
+        assertThatThrownBy(() -> authService.refresh("signed-refresh-token"))
+                .isInstanceOf(InvalidRefreshToken.class)
+                .hasMessage("Invalid refresh token");
     }
 }
