@@ -36,18 +36,20 @@ public class JwtService {
 
     private String generateToken(UUID userId, Duration expirationTime, TokenType tokenType) {
         Instant issuedAt = Instant.now();
-        JwtClaimsSet claims = JwtClaimsSet.builder()
+        JwtClaimsSet.Builder claims = JwtClaimsSet.builder()
                 .issuer(JwtConfig.ISSUER)
                 .issuedAt(issuedAt)
                 .expiresAt(issuedAt.plus(expirationTime))
                 .subject(userId.toString())
-                .claim("token_type", tokenType.value())
-                .build();
+                .claim("token_type", tokenType.value());
+        if (tokenType == TokenType.REFRESH) {
+            claims.id(UUID.randomUUID().toString());
+        }
         JwsHeader header = JwsHeader.with(MacAlgorithm.HS256)
                 .type("JWT")
                 .build();
 
-        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims)).getTokenValue();
+        return jwtEncoder.encode(JwtEncoderParameters.from(header, claims.build())).getTokenValue();
     }
 
     public Jwt decodeRefreshToken(String refreshToken) {

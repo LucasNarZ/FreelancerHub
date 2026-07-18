@@ -55,9 +55,14 @@ class JwtServiceTest {
                 .build();
         var service = new JwtService(encoder, new JwtProperties("secret", Duration.ofMinutes(15), Duration.ofDays(30)), decoder);
 
-        var jwt = service.decodeRefreshToken(service.generateRefreshToken(UUID.randomUUID()));
+        UUID userId = UUID.randomUUID();
+        var jwt = service.decodeRefreshToken(service.generateRefreshToken(userId));
+        var secondJwt = service.decodeRefreshToken(service.generateRefreshToken(userId));
 
         assertThat(jwt.getClaimAsString("token_type")).isEqualTo("refresh");
+        assertThat(jwt.getId()).isNotBlank();
+        assertThat(UUID.fromString(jwt.getId())).isNotNull();
+        assertThat(secondJwt.getId()).isNotEqualTo(jwt.getId());
     }
 
     @Test
